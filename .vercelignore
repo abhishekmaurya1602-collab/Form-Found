@@ -1,0 +1,9 @@
+.git
+.vercel
+node_modules
+work
+.env*
+README.md
+product-museum-prototype.zip
+assets/products
+assets/image-credits.json

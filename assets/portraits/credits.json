@@ -1,0 +1,87 @@
+[
+  {
+    "image": "https://luminaire.com/cdn/shop/articles/CharlesAndRayEames_Large_4a2cd470-ece1-48cc-b880-c13a45830b56.jpg?v=1757081151",
+    "name": "Charles & Ray Eames",
+    "caption": "Charles & Ray Eames",
+    "position": "50% 45%",
+    "credit": "Eames Office, courtesy of Luminaire",
+    "source": "https://luminaire.com/blogs/designers/charles-ray-eames",
+    "license": "Historical portrait. Copyright retained by the original rights holder; no open license is asserted.",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  },
+  {
+    "image": "assets/portraits/rams.webp",
+    "name": "Dieter Rams",
+    "caption": "Dieter Rams",
+    "position": "50% 35%",
+    "credit": "Vitsœ",
+    "source": "https://commons.wikimedia.org/wiki/File:Designer-Dieter_Rams.jpg",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  },
+  {
+    "image": "assets/portraits/panton.webp",
+    "name": "Verner Panton",
+    "caption": "Verner Panton, 1996",
+    "position": "50% 30%",
+    "credit": "Erling Mandelmann",
+    "source": "https://commons.wikimedia.org/wiki/File:Verner_Panton_(1996)_by_Erling_Mandelmann.jpg",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  },
+  {
+    "image": "assets/portraits/beck.webp",
+    "name": "Harry Beck",
+    "caption": "Harry Beck, c. 1963",
+    "position": "72% 30%",
+    "credit": "Historical publicity photograph, via 20th Century London / Wikipedia",
+    "source": "https://en.wikipedia.org/wiki/File:Harry_Beck.jpg",
+    "license": "Historical low-resolution publicity portrait. Copyright retained by the original rights holder; no open license is asserted.",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  },
+  {
+    "image": "assets/portraits/berners.webp",
+    "name": "Tim Berners-Lee",
+    "caption": "Tim Berners-Lee, 2014",
+    "position": "50% 25%",
+    "credit": "Paul Clarke; crop by Jonas Magnus Lystad",
+    "source": "https://commons.wikimedia.org/wiki/File:Sir_Tim_Berners-Lee_(cropped_2).jpg",
+    "license": "CC BY-SA 4.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  },
+  {
+    "image": "https://www.lightformshop.com/blog/2024/Anglepoise/img4-lamp-events-1944.jpg",
+    "name": "George Carwardine",
+    "caption": "George Carwardine",
+    "position": "50% 25%",
+    "credit": "Anglepoise archive, via LightForm",
+    "source": "https://www.lightformshop.com/blog/legacy-of-anglepoise",
+    "license": "Historical portrait. Copyright retained by the original rights holder; no open license is asserted.",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  },
+  {
+    "image": "assets/portraits/kare.webp",
+    "name": "Susan Kare",
+    "caption": "Susan Kare · Macintosh graphics",
+    "position": "50% 25%",
+    "credit": "Cooper Hewitt",
+    "source": "https://commons.wikimedia.org/wiki/File:SusanKare2019photo.jpg",
+    "license": "CC BY 3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  },
+  {
+    "image": "assets/portraits/ive.webp",
+    "name": "Jonathan Ive",
+    "caption": "Jonathan Ive · industrial design",
+    "position": "50% 30%",
+    "credit": "Marcus Dawes",
+    "source": "https://commons.wikimedia.org/wiki/File:Jonathan_Ive_(OTRS)_(cropped).jpg",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "changes": "Displayed with grayscale styling and cropped to fit portrait frames. Local files are resized WebP copies; historical faces are not generated or retouched."
+  }
+]
