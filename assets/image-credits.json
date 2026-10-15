@@ -1,0 +1,196 @@
+{
+  "note": "Product photographs reproduced from the source collections below. Editorial object titles are descriptive, not verified manufacturer model names. Original third-party image rights are not established by a code repository license. No generated product images are used.",
+  "collections": {
+    "objects": "https://github.com/codewithsadee/woodex",
+    "footwear": "https://github.com/codewithsadee/footcap",
+    "watches": "https://github.com/bedimcode/responsive-watches-website",
+    "headphones": "https://github.com/bedimcode/responsive-landing-page-headphones"
+  },
+  "images": [
+    {
+      "file": "object-01.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-1.jpg",
+      "bytes": 19535
+    },
+    {
+      "file": "object-02.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-2.jpg",
+      "bytes": 11869
+    },
+    {
+      "file": "object-03.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-3.jpg",
+      "bytes": 6432
+    },
+    {
+      "file": "object-04.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-4.jpg",
+      "bytes": 7432
+    },
+    {
+      "file": "object-05.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-5.jpg",
+      "bytes": 9554
+    },
+    {
+      "file": "object-06.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-6.jpg",
+      "bytes": 16158
+    },
+    {
+      "file": "object-07.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-7.jpg",
+      "bytes": 1807
+    },
+    {
+      "file": "object-08.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-8.jpg",
+      "bytes": 3672
+    },
+    {
+      "file": "object-09.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-9.jpg",
+      "bytes": 13153
+    },
+    {
+      "file": "object-10.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-10.jpg",
+      "bytes": 11128
+    },
+    {
+      "file": "object-11.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-11.jpg",
+      "bytes": 11063
+    },
+    {
+      "file": "object-12.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-12.jpg",
+      "bytes": 8618
+    },
+    {
+      "file": "object-13.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-13.jpg",
+      "bytes": 9098
+    },
+    {
+      "file": "object-14.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-14.jpg",
+      "bytes": 3477
+    },
+    {
+      "file": "object-15.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-15.jpg",
+      "bytes": 11239
+    },
+    {
+      "file": "object-16.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-16.jpg",
+      "bytes": 10375
+    },
+    {
+      "file": "object-17.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-17.jpg",
+      "bytes": 7832
+    },
+    {
+      "file": "object-18.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-18.jpg",
+      "bytes": 10449
+    },
+    {
+      "file": "object-19.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/woodex/master/assets/images/product-19.jpg",
+      "bytes": 7750
+    },
+    {
+      "file": "watch-01.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-watches-website/main/assets/img/product1.png",
+      "bytes": 95820
+    },
+    {
+      "file": "watch-02.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-watches-website/main/assets/img/product2.png",
+      "bytes": 110149
+    },
+    {
+      "file": "watch-03.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-watches-website/main/assets/img/product3.png",
+      "bytes": 81152
+    },
+    {
+      "file": "watch-04.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-watches-website/main/assets/img/product4.png",
+      "bytes": 81932
+    },
+    {
+      "file": "watch-05.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-watches-website/main/assets/img/product5.png",
+      "bytes": 94757
+    },
+    {
+      "file": "sneaker-01.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-1.jpg",
+      "bytes": 7901
+    },
+    {
+      "file": "sneaker-02.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-2.jpg",
+      "bytes": 7159
+    },
+    {
+      "file": "sneaker-03.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-3.jpg",
+      "bytes": 5252
+    },
+    {
+      "file": "sneaker-04.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-4.jpg",
+      "bytes": 18984
+    },
+    {
+      "file": "sneaker-05.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-5.jpg",
+      "bytes": 5331
+    },
+    {
+      "file": "sneaker-06.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-6.jpg",
+      "bytes": 5885
+    },
+    {
+      "file": "sneaker-07.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-7.jpg",
+      "bytes": 5164
+    },
+    {
+      "file": "sneaker-08.jpg",
+      "source": "https://raw.githubusercontent.com/codewithsadee/footcap/master/assets/images/product-8.jpg",
+      "bytes": 5725
+    },
+    {
+      "file": "headphones-01.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-landing-page-headphones/main/assets/img/product1.png",
+      "bytes": 44912
+    },
+    {
+      "file": "headphones-02.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-landing-page-headphones/main/assets/img/product2.png",
+      "bytes": 46479
+    },
+    {
+      "file": "headphones-03.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-landing-page-headphones/main/assets/img/product3.png",
+      "bytes": 44204
+    },
+    {
+      "file": "headphones-04.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-landing-page-headphones/main/assets/img/product4.png",
+      "bytes": 51114
+    },
+    {
+      "file": "headphones-05.png",
+      "source": "https://raw.githubusercontent.com/bedimcode/responsive-landing-page-headphones/main/assets/img/product5.png",
+      "bytes": 46840
+    }
+  ]
+}
