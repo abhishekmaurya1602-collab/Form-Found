@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8f7f4">
-  <meta name="description" content="A growing gallery of considered objects. Discover furniture, everyday essentials, headphones, watches, and things worth keeping.">
+  <meta name="description" content="Discover classic objects and the minds behind them. Follow a design to its maker, explore their work, and let one good find lead to another.">
   <title>FORM & FOUND — Find your next obsession</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/dm-sans.ttf" as="font" type="font/ttf" crossorigin>
@@ -18,11 +18,12 @@
     <a class="brand" href="./" aria-label="Form and Found home">form<span>&</span>found<span class="brand-period">.</span></a>
     <nav class="main-nav" aria-label="Main navigation">
       <button class="nav-link active" data-view="discover">Discover</button>
+      <button class="nav-link" data-view="makers">The makers</button>
       <button class="nav-link" data-view="saved">My collection <span class="saved-number">0</span></button>
     </nav>
     <form class="search" role="search">
       <span data-icon="search"></span>
-      <input id="search" type="search" placeholder="Find your next obsession" aria-label="Search the gallery" autocomplete="off">
+      <input id="search" type="search" placeholder="Search objects, makers, ideas…" aria-label="Search objects, makers, and ideas" autocomplete="off">
       <kbd aria-hidden="true">/</kbd>
     </form>
     <button class="header-save icon-button" data-view="saved" aria-label="View saved finds"><span data-icon="bookmark"></span><span class="saved-number">0</span></button>
@@ -30,6 +31,7 @@
   </header>
   <aside class="rail" aria-label="Gallery shortcuts">
     <button class="rail-button active" data-view="discover" aria-label="Explore the gallery"><span data-icon="grid"></span><span>Explore</span></button>
+    <button class="rail-button" data-view="makers" aria-label="Meet the designers"><span data-icon="people"></span><span>Makers</span></button>
     <button class="rail-button" data-view="saved" aria-label="Open saved collection"><span data-icon="bookmark"></span><span>Saved</span></button>
     <span class="rail-divider"></span>
     <button class="rail-button" id="shuffle" aria-label="Shuffle the gallery"><span data-icon="shuffle"></span><span>Mix it up</span></button>
@@ -37,32 +39,35 @@
   </aside>
   <main id="main">
     <section class="gallery-intro" aria-labelledby="page-title">
-      <div><p class="eyebrow"><span class="live-dot"></span> A FIELD GUIDE TO GOOD THINGS</p><h1 id="page-title">Find your next <em>obsession.</em></h1><p class="intro-copy" id="intro-copy">Considered objects. Unexpected finds. A place to get a little lost.</p></div>
-      <div class="curator-note"><span class="note-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true"><path d="M20 4v32M4 20h32M8.7 8.7l22.6 22.6M8.7 31.3 31.3 8.7"/></svg></span><p>Good design is everywhere.<br>Here's where we keep it.</p><span class="note-arrow" aria-hidden="true">↙</span></div>
+      <div><p class="eyebrow"><span class="live-dot"></span> GOOD OBJECTS. EXTRAORDINARY MINDS.</p><h1 id="page-title">Find your next <em>obsession.</em></h1><p class="intro-copy" id="intro-copy">Objects with a story. People with a point of view. Follow your curiosity.</p></div>
+      <div class="curator-note"><span class="note-symbol" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true"><path d="M20 4v32M4 20h32M8.7 8.7l22.6 22.6M8.7 31.3 31.3 8.7"/></svg></span><p>Fall for an object.<br>Find the mind behind it.</p><span class="note-arrow" aria-hidden="true">↙</span></div>
     </section>
-    <div class="gallery-toolbar">
+    <section class="maker-ribbon" id="maker-ribbon" aria-label="Start with a designer"><span class="ribbon-label">FOLLOW A MIND <span aria-hidden="true">↘</span></span><div class="maker-chips" id="maker-chips"></div><button class="ribbon-all" data-view="makers">All makers <span aria-hidden="true">↗</span></button></section>
+    <div class="collection-tabs" id="collection-tabs" role="group" aria-label="Your collection" hidden><button data-collection="objects" aria-pressed="true">Saved objects <span id="saved-tab-count">0</span></button><button data-collection="makers" aria-pressed="false">Followed makers <span id="followed-tab-count">0</span></button></div>
+    <div class="gallery-toolbar" id="gallery-toolbar">
       <div class="category-scroll" id="categories" role="group" aria-label="Filter by category"></div>
       <div class="toolbar-tools"><button class="filter-button" id="refine-toggle" aria-expanded="false" aria-controls="refine-panel"><span data-icon="sliders"></span>Refine<span class="filter-dot" hidden></span></button><span class="tool-separator"></span><button class="icon-button density-button" id="density-toggle" aria-label="Use compact gallery layout" aria-pressed="false"><span data-icon="layout"></span></button></div>
     </div>
     <div class="refine-panel" id="refine-panel" hidden>
       <label>Palette<select id="palette"><option value="all">Every color</option><option value="neutral">Warm & neutral</option><option value="dark">Dark & moody</option><option value="colorful">A little color</option></select></label>
-      <label>Material<select id="material"><option value="all">All materials</option><option value="wood">Wood</option><option value="ceramic">Ceramic</option><option value="metal">Metal</option><option value="textile">Textile</option><option value="glass">Glass</option><option value="mixed">Mixed materials</option></select></label>
+      <label>Material<select id="material"><option value="all">All materials</option><option value="wood">Wood</option><option value="paper">Paper</option><option value="digital">Digital</option><option value="metal">Metal</option><option value="textile">Textile</option><option value="mixed">Mixed materials</option></select></label>
       <button class="text-link" id="reset-filters">Reset filters <span aria-hidden="true">↺</span></button>
     </div>
-    <div class="gallery-meta"><p id="result-count" role="status" aria-live="polite"></p><label class="sort-label">Sort by <select id="sort" aria-label="Sort objects"><option value="curated">Curator's mix</option><option value="newest">Recently added</option><option value="az">Name, A–Z</option></select></label></div>
+    <div class="gallery-meta"><p id="result-count" role="status" aria-live="polite"></p><label class="sort-label" id="sort-label">Sort by <select id="sort" aria-label="Sort objects"><option value="curated">Curator's mix</option><option value="newest">Newest design first</option><option value="oldest">Oldest design first</option><option value="az">Name, A–Z</option></select></label></div>
     <section id="gallery" class="gallery" aria-label="Product gallery" tabindex="-1"></section>
     <div class="empty-state" id="empty-state" hidden><span data-icon="search"></span><h2 id="empty-title">No finds just yet.</h2><p id="empty-copy"></p><button class="solid-button" id="empty-action">Explore the gallery <span aria-hidden="true">↗</span></button></div>
     <div class="load-zone" id="load-zone"><button class="load-more" id="load-more"><span class="load-flower" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true"><path d="M20 4v32M4 20h32M8.7 8.7l22.6 22.6M8.7 31.3 31.3 8.7"/></svg></span><span>More good things <span aria-hidden="true">↓</span></span></button><p>Curiosity looks good on you. Keep going.</p></div>
     <div class="end-note" id="end-note" hidden><span aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true"><path d="M20 4v32M4 20h32M8.7 8.7l22.6 22.6M8.7 31.3 31.3 8.7"/></svg></span><p>You've seen every find in this edition.</p><button class="text-link" id="remix">A fresh perspective? Mix it up <span aria-hidden="true">↗</span></button></div>
-    <footer><span>FORM & FOUND <span class="footer-dot">©</span> 2026</span><span>An independent collection of good things.</span><button class="text-link" id="credits-open">Image credits <span aria-hidden="true">↗</span></button></footer>
+    <footer><span>FORM & FOUND <span class="footer-dot">©</span> 2026</span><span>An independent archive of objects & the people behind them.</span><button class="text-link" id="credits-open">Sources & credits <span aria-hidden="true">↗</span></button></footer>
   </main>
   <button class="back-top icon-button" id="back-top" aria-label="Back to top" hidden><span data-icon="arrow-up"></span></button>
   <dialog id="product-dialog" class="product-dialog" aria-labelledby="detail-title">
     <button class="dialog-close icon-button" data-close aria-label="Close product details"><span data-icon="close"></span></button>
+    <nav class="exploration-bar" id="exploration-bar" aria-label="Your exploration trail"></nav>
     <div id="product-detail"></div>
   </dialog>
   <dialog id="info-dialog" class="info-dialog" aria-labelledby="info-title"><button class="dialog-close icon-button" data-close aria-label="Close information"><span data-icon="close"></span></button><div id="info-content"></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <noscript><div class="noscript-note">Enable JavaScript to explore the gallery. <a href="assets/products/object-09.jpg">View a product photograph</a>.</div></noscript>
+  <noscript><div class="noscript-note">Enable JavaScript to explore the gallery. <a href="assets/classics/eames-lcw.webp">View a design photograph</a>.</div></noscript>
 </body>
 </html>

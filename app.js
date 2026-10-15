@@ -11,129 +11,119 @@ const ICONS = {
   close:'<path d="m6 6 12 12M18 6 6 18"/>',
   'arrow-up':'<path d="M12 20V4m-6 6 6-6 6 6"/>',
   arrow:'<path d="M5 19 19 5M5 5h14v14"/>',
+  people:'<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/>',
+  back:'<path d="M20 12H4m6-6-6 6 6 6"/>',
+  link:'<path d="m10 13 4-4m-5 7-2 2a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2-1 2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0"/>',
   check:'<path d="m5 12 4 4L19 6"/>'
 };
 const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.arrow}</svg>`;
 document.querySelectorAll('[data-icon]').forEach(el => el.outerHTML = icon(el.dataset.icon));
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const categories = ['All finds','Furniture','Lighting','Objects','Tech & audio','Watches','Footwear'];
-const ids = new Set(PRODUCTS.map(p=>p.id));
-let saved = new Set();
-try { const stored=JSON.parse(localStorage.getItem('form-found-saved') || '[]');if(Array.isArray(stored)) saved=new Set(stored.filter(id=>ids.has(id))); } catch { /* Browsing still works when storage is unavailable. */ }
-const state = {view:'discover',category:'All finds',query:'',palette:'all',material:'all',sort:'curated',visible:16,order:PRODUCTS.map(p=>p.id)};
-let currentProduct=null, lastProductTrigger=null, toastTimeout, layoutFrame, loading=false;
-const prefersReducedMotion = ()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const categories=['All finds',...new Set(PRODUCTS.map(p=>p.category))];
+const find=id=>PRODUCTS.find(p=>p.id===id);
+const maker=id=>DESIGNERS.find(d=>d.id===id);
+const worksBy=id=>PRODUCTS.filter(p=>p.designerId===id).sort((a,b)=>a.year-b.year);
+const readSet=(key,allowed)=>{try{const data=JSON.parse(localStorage.getItem(key)||'[]');return new Set(Array.isArray(data)?data.filter(id=>allowed.has(id)):[]);}catch{return new Set();}};
+let saved=readSet('form-found-saved',new Set(PRODUCTS.map(p=>p.id)));
+let followed=readSet('form-found-followed',new Set(DESIGNERS.map(d=>d.id)));
+const state={view:'discover',collection:'objects',category:'All finds',query:'',palette:'all',material:'all',sort:'curated',visible:16,order:PRODUCTS.map(p=>p.id)};
+let trail=[],lastProductTrigger=null,toastTimeout,layoutFrame,loading=false,syncingRoute=false;
+const isMakerView=()=>state.view==='makers'||state.view==='saved'&&state.collection==='makers';
+const prefersReducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const goTop=()=>window.scrollTo({top:0,behavior:prefersReducedMotion()?'instant':'smooth'});
-const find = id=>PRODUCTS.find(p=>p.id===id);
-function notify(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').classList.remove('visible'),2400);}
+const routeURL=(type,id)=>`#${type}/${encodeURIComponent(id)}`;
+const entity=node=>node.type==='maker'?maker(node.id):find(node.id);
+const entityName=node=>{const e=entity(node);return e?.name||e?.title||'';};
+function notify(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').classList.remove('visible'),2600);}
+function persist(key,set){try{localStorage.setItem(key,JSON.stringify([...set]));return true;}catch{return false;}}
 function filteredProducts(){
   const term=state.query.trim().toLowerCase();
-  const list=PRODUCTS.filter(p=>(state.view!=='saved'||saved.has(p.id))&&(state.category==='All finds'||p.category===state.category)&&(state.palette==='all'||p.palette===state.palette)&&(state.material==='all'||p.material===state.material)&&(!term||[p.title,p.category,p.material,p.note,p.description].join(' ').toLowerCase().includes(term)));
+  const list=PRODUCTS.filter(p=>(state.view!=='saved'||saved.has(p.id))&&(state.category==='All finds'||p.category===state.category)&&(state.palette==='all'||p.palette===state.palette)&&(state.material==='all'||p.material===state.material)&&(!term||[p.title,p.category,p.material,p.description,p.story,p.year,p.credits,maker(p.designerId).name,maker(p.designerId).idea].join(' ').toLowerCase().includes(term)));
   if(state.sort==='az')return list.sort((a,b)=>a.title.localeCompare(b.title));
-  if(state.sort==='newest')return list.reverse();
+  if(state.sort==='newest'||state.sort==='oldest')return list.sort((a,b)=>state.sort==='newest'?b.year-a.year:a.year-b.year);
   const order=new Map(state.order.map((id,i)=>[id,i]));return list.sort((a,b)=>order.get(a.id)-order.get(b.id));
 }
+function filteredMakers(){const term=state.query.trim().toLowerCase();return DESIGNERS.filter(d=>(state.view!=='saved'||followed.has(d.id))&&(!term||[d.name,d.bio,d.discipline,d.country,...worksBy(d.id).map(p=>p.title)].join(' ').toLowerCase().includes(term)));}
 function updateSavedControls(){
   document.querySelectorAll('.saved-number').forEach(el=>el.textContent=saved.size);
-  document.querySelectorAll('[data-save]').forEach(el=>{
-    const selected=saved.has(el.dataset.save), p=find(el.dataset.save);
-    el.classList.toggle('saved',selected);el.setAttribute('aria-pressed',selected);
-    el.setAttribute('aria-label',`${selected?'Remove':'Save'} ${p.title}${selected?' from your collection':' to your collection'}`);
-    el.innerHTML=el.classList.contains('detail-save')?`${icon(selected?'check':'bookmark')} ${selected?'Saved to my collection':'Save to my collection'}`:icon('bookmark');
-  });
+  $('saved-tab-count').textContent=saved.size;$('followed-tab-count').textContent=followed.size;
+  document.querySelectorAll('[data-save]').forEach(el=>{const selected=saved.has(el.dataset.save),p=find(el.dataset.save);if(!p)return;el.classList.toggle('saved',selected);el.setAttribute('aria-pressed',selected);el.setAttribute('aria-label',`${selected?'Remove':'Save'} ${p.title}${selected?' from your collection':' to your collection'}`);el.innerHTML=el.classList.contains('detail-save')?`${icon(selected?'check':'bookmark')} ${selected?'Saved to my collection':'Save this object'}`:icon('bookmark');});
+  document.querySelectorAll('[data-follow]').forEach(el=>{const selected=followed.has(el.dataset.follow),d=maker(el.dataset.follow);el.classList.toggle('following',selected);el.setAttribute('aria-pressed',selected);el.setAttribute('aria-label',`${selected?'Unfollow':'Follow'} ${d.name}`);el.innerHTML=`${icon(selected?'check':'people')} ${selected?'Following this maker':'Follow this maker'}`;});
 }
-function toggleSaved(id){
-  const wasSaved=saved.has(id);wasSaved?saved.delete(id):saved.add(id);
-  let persisted=true;try{localStorage.setItem('form-found-saved',JSON.stringify([...saved]));}catch{persisted=false;}
-  updateSavedControls();
-  if(state.view==='saved')renderGallery();
-  notify(persisted?(wasSaved?'Removed from your collection':'A good find. Saved to your collection.'):'Saved for this visit. Browser storage is unavailable.');
-}
-function renderCategories(){
-  const focusedCategory=document.activeElement?.dataset.category;
-  $('categories').innerHTML=categories.map((c,i)=>`<button class="category ${state.category===c?'active':''}" data-category="${escapeHtml(c)}" aria-pressed="${state.category===c}">${i===0?'<span class="category-mark" aria-hidden="true">'+icon('spark')+'</span>':''}${escapeHtml(c)}</button>`).join('');
-  if(focusedCategory){[...$('categories').children].find(button=>button.dataset.category===focusedCategory)?.focus({preventScroll:true});}
-}
-function cardMarkup(p,index){
-  return `<article class="card product-card" data-product="${p.id}" style="--ratio:${p.ratio};--tile-bg:${p.bg};animation-delay:${Math.min(index,7)*25}ms"><div class="card-content"><div class="photo"><button class="product-open" data-open="${p.id}" aria-label="Explore ${escapeHtml(p.title)}"><img class="product-image ${p.image.endsWith('.jpg')?'photograph':''} ${p.fullBleed?'full-bleed':''}" src="${p.image}" alt="${escapeHtml(p.title)}" loading="${index<5?'eager':'lazy'}" decoding="async" width="400" height="400"><span class="open-label">Take a closer look ${icon('arrow')}</span></button>${p.tag?`<span class="card-badge ${p.tag==='CURATOR’S PICK'?'pick':''}">${p.tag}</span>`:''}<button class="save-button ${saved.has(p.id)?'saved':''}" data-save="${p.id}" aria-pressed="${saved.has(p.id)}" aria-label="${saved.has(p.id)?'Remove':'Save'} ${escapeHtml(p.title)} ${saved.has(p.id)?'from':'to'} your collection">${icon('bookmark')}</button></div><div class="card-info"><div class="card-heading"><h2 class="card-title"><button data-open="${p.id}">${escapeHtml(p.title)}</button></h2><span class="card-number">F—${String(PRODUCTS.indexOf(p)+1).padStart(3,'0')}</span></div><p class="card-subtitle">${escapeHtml(p.note)}<span>·</span>${escapeHtml(p.category)}</p></div></div></article>`;
-}
-function editorialMarkup(){return `<article class="card editorial-card"><div class="card-content"><div class="editorial-top"><span>THE ART OF EVERYDAY</span><span>01 /</span></div><span class="editorial-flower" aria-hidden="true">${icon('spark')}</span><h2>Ordinary things.<br>Extraordinary<br>little details.</h2><p>A good object doesn't ask for attention. It quietly earns it.</p><button data-editorial>Find your everyday favorite ${icon('arrow')}</button></div></article>`;}
-function masonry(){
-  cancelAnimationFrame(layoutFrame);layoutFrame=requestAnimationFrame(()=>{
-    $('gallery').querySelectorAll('.card').forEach(card=>{const height=card.querySelector('.card-content').getBoundingClientRect().height;card.style.gridRowEnd=`span ${Math.ceil(height+24)}`;});
-  });
-}
+function toggleSaved(id){if(!find(id))return;const selected=saved.has(id);selected?saved.delete(id):saved.add(id);const persisted=persist('form-found-saved',saved);updateSavedControls();if(state.view==='saved'&&!isMakerView())renderGallery();notify(persisted?(selected?'Removed from your collection':'A story worth keeping. Saved.'):'Saved for this visit. Browser storage is unavailable.');}
+function toggleFollow(id){if(!maker(id))return;const selected=followed.has(id);selected?followed.delete(id):followed.add(id);const persisted=persist('form-found-followed',followed);updateSavedControls();if(state.view==='saved'&&isMakerView())renderGallery();notify(persisted?(selected?'Maker unfollowed':`Now following ${maker(id).name}.`):'Followed for this visit. Browser storage is unavailable.');}
+function renderCategories(){const focused=document.activeElement?.dataset.category;$('categories').innerHTML=categories.map((c,i)=>`<button class="category ${state.category===c?'active':''}" data-category="${escapeHtml(c)}" aria-pressed="${state.category===c}">${i===0?'<span class="category-mark" aria-hidden="true">'+icon('spark')+'</span>':''}${escapeHtml(c)}</button>`).join('');if(focused)[...$('categories').children].find(b=>b.dataset.category===focused)?.focus({preventScroll:true});}
+function makerChip(d){return `<a class="maker-chip" href="${routeURL('maker',d.id)}" data-maker="${d.id}"><span class="maker-monogram" style="--maker-color:${d.color}" aria-hidden="true">${d.initials}</span><span>${escapeHtml(d.short)}</span>${icon('arrow')}</a>`;}
+function cardMarkup(p,index){const d=maker(p.designerId);return `<article class="card product-card" data-product="${p.id}" style="--ratio:${p.ratio};--tile-bg:${p.bg};animation-delay:${Math.min(index,7)*25}ms"><div class="card-content"><div class="photo"><a class="product-open" href="${routeURL('object',p.id)}" data-open="${p.id}" aria-label="Explore ${escapeHtml(p.title)} by ${escapeHtml(d.name)}"><img class="product-image ${p.image.endsWith('.jpg')?'photograph':''} ${p.study?'design-study':''}" src="${p.image}" alt="${escapeHtml(p.photoNote||p.title)}" loading="${index<5?'eager':'lazy'}" decoding="async" width="500" height="560"><span class="open-label">Discover the story ${icon('arrow')}</span></a>${p.tag?`<span class="card-badge pick">${p.tag}</span>`:''}${p.study?`<span class="study-tag">${p.id==='first-website'?'INTERFACE STUDY':'DIAGRAM STUDY'}</span>`:''}<button class="save-button" data-save="${p.id}" aria-pressed="${saved.has(p.id)}" aria-label="Save ${escapeHtml(p.title)}">${icon('bookmark')}</button><span class="card-year">${p.year}</span></div><div class="card-info"><div class="card-heading"><h2 class="card-title"><a href="${routeURL('object',p.id)}" data-open="${p.id}">${escapeHtml(p.title)}</a></h2><span class="card-number">F—${String(PRODUCTS.indexOf(p)+1).padStart(3,'0')}</span></div><a class="card-maker" href="${routeURL('maker',d.id)}" data-maker="${d.id}"><span class="maker-dot" style="background:${d.color}"></span><span>${p.id==='first-web-server'?'Web software · ':''}${escapeHtml(d.name)}</span>${icon('arrow')}</a>${p.credits?`<p class="collaboration-note">${p.id==='braun-sk4'?'With Hans Gugelot':p.id==='braun-et66'?'With Dietrich Lubs':p.id==='braun-t3'?'With HfG Ulm':p.designerId==='apple'?'A collaborative design':p.designerId==='berners'?'At CERN, with collaborators':'With Herbert Terry & Sons'}</p>`:''}</div></div></article>`;}
+function editorialMarkup(){return `<article class="card editorial-card"><div class="card-content"><div class="editorial-top"><span>THE OBJECT & THE ARTIST</span><span>01 /</span></div><span class="editorial-flower" aria-hidden="true">${icon('spark')}</span><h2>Love the object?<br>Follow<br>the mind.</h2><p>A chair is only the beginning. There’s a whole world behind the person who made it.</p><a href="#maker/eames" data-maker="eames">Step inside the Eames’ world ${icon('arrow')}</a></div></article>`;}
+function makerCard(d){const works=worksBy(d.id);return `<article class="maker-card"><a href="${routeURL('maker',d.id)}" data-maker="${d.id}" class="maker-card-link"><div class="maker-mosaic" style="--maker-color:${d.color}"><img src="${works[0].image}" alt="${escapeHtml(works[0].title)}" width="350" height="300" loading="lazy"><img src="${works[works.length-1].image}" alt="${escapeHtml(works[works.length-1].title)}" width="200" height="200" loading="lazy"><span class="mosaic-initials" aria-hidden="true">${d.initials}</span><span class="mosaic-count">${works.length} stories to follow</span></div><div class="maker-card-meta"><p>${escapeHtml(d.discipline)}</p><h2>${escapeHtml(d.name)} ${icon('arrow')}</h2><span>${escapeHtml(d.country)}</span><p class="maker-card-idea">${escapeHtml(d.idea)}</p></div></a></article>`;}
+function masonry(){cancelAnimationFrame(layoutFrame);if(isMakerView())return;layoutFrame=requestAnimationFrame(()=>$('gallery').querySelectorAll('.card').forEach(card=>{card.style.gridRowEnd=`span ${Math.ceil(card.querySelector('.card-content').getBoundingClientRect().height+26)}`;}));}
 const resizeObserver=new ResizeObserver(masonry);resizeObserver.observe($('gallery'));
 function renderGallery(append=false){
-  const list=filteredProducts(),visible=list.slice(0,state.visible);
-  const hasEditorial=state.view==='discover'&&state.category==='All finds'&&!state.query&&state.palette==='all'&&state.material==='all'&&state.sort==='curated';
-  if(append){
-    const existing=new Set([...$('gallery').querySelectorAll('[data-product]')].map(c=>c.dataset.product));
-    $('gallery').insertAdjacentHTML('beforeend',visible.filter(p=>!existing.has(p.id)).map((p,i)=>cardMarkup(p,i)).join(''));
-  }else{
-    $('gallery').innerHTML=visible.map((p,i)=>cardMarkup(p,i)+(hasEditorial&&i===6?editorialMarkup():'')).join('');
-  }
-  $('result-count').innerHTML=state.query?`<strong>${list.length} ${list.length===1?'find':'finds'}</strong> for “${escapeHtml(state.query)}”`:`<strong>${String(list.length).padStart(2,'0')} ${list.length===1?'considered object':'considered objects'}</strong><span aria-hidden="true"> &nbsp; / &nbsp; </span>${state.view==='saved'?'Your personal collection':'Independently collected'}`;
-  const empty=list.length===0;$('empty-state').hidden=!empty;
-  const trulyEmptySaved=state.view==='saved'&&saved.size===0;
-  $('empty-title').textContent=trulyEmptySaved?'Your good finds go here.':'Nothing here. Yet.';
-  $('empty-copy').textContent=trulyEmptySaved?'See something you love? Tap the bookmark on any object to start your own little collection.':'Try another search or loosen the filters. Your next favorite might be one click away.';
-  $('empty-action').textContent=trulyEmptySaved?'Discover something good ↗':'Clear search & filters ↺';
-  $('load-zone').hidden=empty||state.visible>=list.length;
-  $('end-note').hidden=empty||state.visible<list.length||state.view==='saved';
-  $('page-title').innerHTML=state.view==='saved'?'Your very own <em>good things.</em>':'Find your next <em>obsession.</em>';
-  $('intro-copy').textContent=state.view==='saved'?'A little collection of things that caught your eye. Saved on this browser.':'Considered objects. Unexpected finds. A place to get a little lost.';
-  document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view===state.view));
-  document.querySelector('.filter-dot').hidden=state.palette==='all'&&state.material==='all';
-  masonry();
+  const makers=isMakerView(),list=makers?filteredMakers():filteredProducts(),visible=makers?list:list.slice(0,state.visible);
+  $('gallery').classList.toggle('makers-grid',makers);$('gallery').setAttribute('aria-label',makers?'Designer gallery':'Design object gallery');
+  if(makers)$('gallery').innerHTML=visible.map(makerCard).join('');
+  else if(append){const existing=new Set([...$('gallery').querySelectorAll('[data-product]')].map(c=>c.dataset.product));$('gallery').insertAdjacentHTML('beforeend',visible.filter(p=>!existing.has(p.id)).map(cardMarkup).join(''));}
+  else{const editorial=state.view==='discover'&&state.category==='All finds'&&!state.query&&state.palette==='all'&&state.material==='all'&&state.sort==='curated';$('gallery').innerHTML=visible.map((p,i)=>cardMarkup(p,i)+(editorial&&i===6?editorialMarkup():'')).join('');}
+  $('result-count').innerHTML=`<strong>${String(list.length).padStart(2,'0')} ${makers?(list.length===1?'maker':'makers'):(list.length===1?'design story':'design stories')}</strong><span aria-hidden="true"> &nbsp; / &nbsp; </span>${state.query?`Matching “${escapeHtml(state.query)}”`:state.view==='saved'?'Your personal collection':makers?'Different minds. Endless directions.':'Every object leads somewhere'}`;
+  const empty=!list.length;$('empty-state').hidden=!empty;
+  const trulyEmpty=state.view==='saved'&&(makers?followed.size===0:saved.size===0);
+  $('empty-title').textContent=trulyEmpty?(makers?'Keep a few curious minds close.':'Your good finds go here.'):'No stories on this thread. Yet.';
+  $('empty-copy').textContent=trulyEmpty?(makers?'Follow a designer from their profile. Their work will be waiting here whenever curiosity calls.':'Tap the bookmark on an object to keep its story in your collection.'):'Try a designer’s name, a material, a year, or a different idea.';
+  $('empty-action').textContent=trulyEmpty?(makers?'Meet the makers ↗':'Explore the objects ↗'):'Clear search & filters ↺';
+  $('load-zone').hidden=makers||empty||state.visible>=list.length;$('end-note').hidden=makers||empty||state.visible<list.length||state.view==='saved';
+  $('page-title').innerHTML=state.view==='saved'?'Your own little <em>world.</em>':makers?'Meet the minds <em>behind it.</em>':'Find your next <em>obsession.</em>';
+  $('intro-copy').textContent=state.view==='saved'?'The objects you love. The minds you follow. Your curiosity, collected.':makers?'One maker. Many ideas. Discover where their curiosity could take yours.':'Objects with a story. People with a point of view. Follow your curiosity.';
+  $('maker-ribbon').hidden=state.view!=='discover';$('gallery-toolbar').hidden=makers;$('sort-label').hidden=makers;$('refine-panel').hidden=makers||$('refine-toggle').getAttribute('aria-expanded')!=='true';$('collection-tabs').hidden=state.view!=='saved';
+  document.querySelectorAll('[data-collection]').forEach(el=>el.setAttribute('aria-pressed',el.dataset.collection===state.collection));
+  document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',el.dataset.view===state.view);if(el.dataset.view===state.view)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
+  document.querySelector('.filter-dot').hidden=state.palette==='all'&&state.material==='all';updateSavedControls();masonry();
 }
 function resetFilters(){state.category='All finds';state.query='';state.palette='all';state.material='all';state.visible=16;$('search').value='';$('palette').value='all';$('material').value='all';renderCategories();}
 function setView(view){state.view=view;resetFilters();renderGallery();goTop();}
-function loadMore(){
-  if(loading||state.visible>=filteredProducts().length)return;
-  loading=true;state.visible+=12;renderGallery(true);requestAnimationFrame(()=>{loading=false});
-}
+function loadMore(){if(loading||isMakerView()||state.visible>=filteredProducts().length)return;loading=true;state.visible+=12;renderGallery(true);requestAnimationFrame(()=>{loading=false;});}
 const loadObserver=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)&&!$('load-zone').hidden)loadMore();},{rootMargin:'300px'});loadObserver.observe($('load-zone'));
-function mixItUp(){
-  state.view='discover';resetFilters();state.sort='curated';$('sort').value='curated';
-  const order=PRODUCTS.map(p=>p.id);for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}state.order=order;
-  renderGallery();goTop();notify('Same good taste. A fresh perspective.');
-}
-function openProduct(id,trigger){
-  const p=find(id);if(!p)return;currentProduct=id;
-  if(!$('product-dialog').open)lastProductTrigger=trigger||document.activeElement;
-  const related=PRODUCTS.filter(o=>o.id!==id&&o.category===p.category).slice(0,3);
-  $('product-detail').innerHTML=`<div class="detail-layout"><div class="detail-image" style="--tile-bg:${p.bg}"><img src="${p.image}" alt="${escapeHtml(p.title)}" width="450" height="450"></div><div class="detail-copy"><span class="detail-category">THE FIND / ${escapeHtml(p.category)}</span><h2 id="detail-title">${escapeHtml(p.title)}</h2><p class="detail-description">${escapeHtml(p.description)}</p><dl class="detail-facts"><div><dt>In the collection</dt><dd>${escapeHtml(p.category)}</dd></div><div><dt>Material study</dt><dd>${escapeHtml(p.material==='mixed'?'Mixed materials':p.material[0].toUpperCase()+p.material.slice(1))}</dd></div><div><dt>Object reference</dt><dd>F—${String(PRODUCTS.indexOf(p)+1).padStart(3,'0')}</dd></div></dl><button class="solid-button detail-save" data-save="${p.id}"></button><a class="detail-source" href="${p.image}" target="_blank" rel="noopener">View original photograph ${icon('arrow')}</a></div></div>${related.length?`<div class="detail-related"><h3>A few more things you might like</h3><div class="related-grid">${related.map(r=>`<button class="related-object" data-open="${r.id}"><img src="${r.image}" alt="" width="150" height="110"><span>${escapeHtml(r.title)}</span></button>`).join('')}</div></div>`:''}`;
-  updateSavedControls();
-  if(!$('product-dialog').open){$('product-dialog').showModal();document.body.style.overflow='hidden';}
-  $('product-dialog').scrollTop=0;$('product-dialog').querySelector('[data-close]').focus();
-}
-function showInfo(type){
-  $('info-content').innerHTML=type==='credits'?`<span class="eyebrow">BEHIND THE PHOTOGRAPHS</span><h2 id="info-title">Real objects. Real images.</h2><p>The gallery uses product photographs stored with this site. No generated product imagery or placeholder images.</p><ul><li>Furniture, lighting & tabletop: <a href="https://github.com/codewithsadee/woodex" target="_blank" rel="noopener">Woodex image collection</a></li><li>Footwear: <a href="https://github.com/codewithsadee/footcap" target="_blank" rel="noopener">Footcap image collection</a></li><li>Headphones: <a href="https://github.com/bedimcode/responsive-landing-page-headphones" target="_blank" rel="noopener">Bedimcode headphones collection</a></li><li>Watches: <a href="https://github.com/bedimcode/responsive-watches-website" target="_blank" rel="noopener">Bedimcode watches collection</a></li></ul><p>Editorial titles describe the photographed objects. They are not manufacturer model names. Brand names belong to their respective owners.</p><a class="text-link" href="assets/image-credits.json" target="_blank" rel="noopener">Full image source list ↗</a>`:`<span class="eyebrow">A COLLECTION, NOT A CHECKOUT</span><h2 id="info-title">For the endlessly curious.</h2><p>Form & Found is an independent gallery of objects worth a second look. Furniture, everyday essentials, wearable details, and the small things that make life more interesting.</p><p>Wander through ${PRODUCTS.length} photographed finds. Follow a material, fall for a color, or save a few favorites. Your collection stays in this browser. There are no accounts and nothing to buy here.</p><button class="solid-button" data-close>Back to the good things ↗</button>`;
-  $('info-dialog').showModal();document.body.style.overflow='hidden';
-}
+function mixItUp(){state.view='discover';resetFilters();state.sort='curated';$('sort').value='curated';const order=PRODUCTS.map(p=>p.id);for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}state.order=order;renderGallery();goTop();notify('A fresh starting point. Follow a new thread.');}
+function smallWork(p){return `<a class="related-object" href="${routeURL('object',p.id)}" data-open="${p.id}"><div class="related-image" style="background:${p.bg}"><img src="${p.image}" alt="" width="250" height="220" loading="lazy"><span>${p.year}</span></div><strong>${escapeHtml(p.title)}</strong><span>${escapeHtml(maker(p.designerId).name)}</span></a>`;}
+function connectionMarkup(d){return `<div class="connection-grid">${d.connections.map(c=>{const other=maker(c.id),p=worksBy(c.id)[0];return `<a class="connection-card" href="${routeURL('maker',other.id)}" data-maker="${other.id}"><div class="connection-image" style="background:${other.color}"><img src="${p.image}" alt="" loading="lazy" width="180" height="180"></div><div><span class="connection-label">${escapeHtml(c.label)}</span><h4>${escapeHtml(other.name)} ${icon('arrow')}</h4><p>${escapeHtml(c.reason)}</p></div></a>`;}).join('')}</div>`;}
+function objectMarkup(p){const d=maker(p.designerId),related=worksBy(d.id).filter(o=>o.id!==p.id);return `<div class="detail-layout"><figure class="detail-image" style="--tile-bg:${p.bg}"><img src="${p.image}" alt="${escapeHtml(p.photoNote||p.title)}" width="600" height="650">${p.photoNote?`<figcaption>${escapeHtml(p.photoNote)}</figcaption>`:''}</figure><div class="detail-copy"><span class="detail-category">THE OBJECT / ${escapeHtml(p.category)} / ${p.year}</span><h2 id="detail-title" tabindex="-1">${escapeHtml(p.title)}</h2><a class="object-byline" href="${routeURL('maker',d.id)}" data-maker="${d.id}"><span class="maker-monogram" style="--maker-color:${d.color}">${d.initials}</span><span><small>${p.designerId==='berners'?'WEB WORK BY':'DESIGNED BY'}</small><strong>${escapeHtml(d.name)}</strong></span>${icon('arrow')}</a>${p.credits?`<p class="detail-collaborators">${escapeHtml(p.credits)}</p>`:''}<p class="detail-description">${escapeHtml(p.description)}</p><dl class="detail-facts"><div><dt>Introduced / developed</dt><dd>${p.year}</dd></div><div><dt>Material</dt><dd>${escapeHtml(p.material==='mixed'?'Mixed materials':p.material[0].toUpperCase()+p.material.slice(1))}</dd></div><div><dt>Field</dt><dd>${escapeHtml(p.category)}</dd></div></dl><button class="solid-button detail-save" data-save="${p.id}"></button><a class="detail-source" href="${p.source}" target="_blank" rel="noopener">Explore the archive ${icon('arrow')}</a></div></div><section class="object-story"><span class="eyebrow">A LITTLE BACKSTORY</span><p>${escapeHtml(p.story)}</p></section><section class="maker-invitation" style="--maker-color:${d.color}"><div class="invitation-monogram" aria-hidden="true">${d.initials}</div><div><span class="eyebrow">THE MIND BEHIND THE OBJECT</span><h3>${escapeHtml(d.name)}</h3><p>${escapeHtml(d.idea)} This is one chapter. There are ${related.length} more ${related.length===1?'story':'stories'} to explore.</p></div><a class="solid-button" href="${routeURL('maker',d.id)}" data-maker="${d.id}">Enter their world ${icon('arrow')}</a></section><section class="detail-related"><div class="section-heading"><div><span class="eyebrow">SAME MIND. DIFFERENT IDEAS.</span><h3>More by ${escapeHtml(d.short)}</h3></div><a class="text-link" href="${routeURL('maker',d.id)}" data-maker="${d.id}">View the maker ${icon('arrow')}</a></div><div class="related-grid">${related.map(smallWork).join('')}</div></section><section class="detail-related onward"><span class="eyebrow">LET CURIOSITY CONNECT THE DOTS</span><h3>A different mind. A shared idea.</h3>${connectionMarkup(d)}<p class="curatorial-note">Connections are curatorial invitations to compare ideas.</p></section>`;}
+function designerMarkup(d){const works=worksBy(d.id);return `<section class="designer-hero" style="--maker-color:${d.color}"><div class="designer-header"><span class="eyebrow">THE MAKER / ${escapeHtml(d.discipline.toUpperCase())}</span><h2 id="detail-title" tabindex="-1">${escapeHtml(d.name)}</h2><p class="designer-idea">${escapeHtml(d.idea)}</p><div class="designer-place">${escapeHtml(d.country)} <span>·</span> ${escapeHtml(d.period)}</div></div><div class="designer-hero-art" aria-hidden="true"><img src="${works[0].image}" alt="" width="420" height="390"><span>${d.initials}</span></div></section><section class="designer-biography"><div><span class="eyebrow">A WAY OF SEEING</span><p>${escapeHtml(d.bio)}</p><p class="designer-approach">${escapeHtml(d.approach)}</p><a class="detail-source" href="${d.source}" target="_blank" rel="noopener">More from the archive ${icon('arrow')}</a></div><aside><span class="profile-count">${String(works.length).padStart(2,'0')}</span><p>works to explore<br>in this collection</p><button class="follow-button" data-follow="${d.id}" aria-pressed="${followed.has(d.id)}"></button></aside></section><section class="detail-related designer-works"><div class="section-heading"><div><span class="eyebrow">ONE MIND. MANY POSSIBILITIES.</span><h3>Follow the work.</h3></div><span class="works-range">${works[0].year} — ${works.at(-1).year}</span></div><div class="related-grid">${works.map(smallWork).join('')}</div></section><section class="detail-related onward"><span class="eyebrow">THE NEXT CHAPTER IS YOURS</span><h3>If this caught your eye…</h3>${connectionMarkup(d)}<p class="curatorial-note">Shared questions and contrasting approaches, selected by Form & Found.</p></section>`;}
+function renderTrail(){const visible=trail.slice(-4);$('exploration-bar').innerHTML=`<button class="trail-back icon-button" data-trail-back aria-label="${trail.length>1?'Go back one step':'Return to the gallery'}">${icon('back')}</button><ol><li><button data-explorer-close>Gallery</button></li>${visible.map((node,i)=>`<li><span aria-hidden="true">/</span>${i===visible.length-1?`<span class="trail-current" aria-current="page">${escapeHtml(entityName(node))}</span>`:`<button data-trail-index="${trail.length-visible.length+i}">${escapeHtml(entityName(node))}</button>`}</li>`).join('')}</ol><button class="icon-button share-button" data-share aria-label="Copy a link to this ${trail.at(-1).type==='maker'?'maker':'object'}">${icon('link')}</button>`;}
+function renderExplorer(){const node=trail.at(-1),item=node&&entity(node);if(!item)return;const dialog=$('product-dialog');$('product-detail').innerHTML=node.type==='maker'?designerMarkup(item):objectMarkup(item);dialog.classList.toggle('showing-maker',node.type==='maker');renderTrail();updateSavedControls();if(!dialog.open){dialog.showModal();document.body.style.overflow='hidden';}dialog.scrollTop=0;$('detail-title').focus({preventScroll:true});}
+function navigate(type,id,trigger){const node={type,id};if(!entity(node))return;if(trail.at(-1)?.type===type&&trail.at(-1)?.id===id)return;if(!$('product-dialog').open)lastProductTrigger=trigger||document.activeElement;trail=[...trail,node];history.pushState({formFoundTrail:trail},'',routeURL(type,id));renderExplorer();}
+function closeExplorer(){if($('product-dialog').open)$('product-dialog').close();else clearExplorerRoute();}
+function clearExplorerRoute(){trail=[];if(!syncingRoute&&/^#(object|maker)\//.test(location.hash))history.replaceState(null,'',location.pathname+location.search);}
+function syncRoute(){let match;try{match=location.hash.match(/^#(object|maker)\/([^/]+)$/);if(match)match=[match[0],match[1],decodeURIComponent(match[2])];}catch{match=null;}const node=match?{type:match[1],id:match[2]}:null;if(node&&entity(node)){const prior=history.state?.formFoundTrail;trail=Array.isArray(prior)&&prior.length&&prior.every(n=>n&&['object','maker'].includes(n.type)&&entity(n))&&prior.at(-1).id===node.id&&prior.at(-1).type===node.type?prior:[node];renderExplorer();}else{syncingRoute=true;if($('product-dialog').open)$('product-dialog').close();trail=[];syncingRoute=false;}}
+window.addEventListener('popstate',syncRoute);window.addEventListener('hashchange',syncRoute);
+function showInfo(type){$('info-content').innerHTML=type==='credits'?`<span class="eyebrow">BEHIND THE COLLECTION</span><h2 id="info-title">A credit for every story.</h2><p>Every work links to a creator, manufacturer, museum or historical archive. Collaborative credits appear with the object.</p><p>Photographs come from Wikimedia Commons and are stored with the site. Image authors, source pages and licenses are listed below. Three original studies illustrate information designs; they are labeled on their cards and are not archival reproductions.</p><a class="solid-button" href="assets/classics/credits.html" target="_blank" rel="noopener">Photographs & image credits ↗</a>`:`<span class="eyebrow">THE OBJECT & THE ARTIST</span><h2 id="info-title">Made to explore, not to finish.</h2><p>Form & Found is an independent design archive. Start with an object, meet the mind behind it, then follow their work into another idea.</p><p>Explore ${PRODUCTS.length} stories and ${DESIGNERS.length} makers. The connections between makers are editorial prompts for curiosity. Save objects, follow designers, and pick up a thread whenever you like. Your collection stays in this browser.</p><button class="solid-button" data-close>Back to exploring ↗</button>`;$('info-dialog').showModal();document.body.style.overflow='hidden';}
 document.addEventListener('click',event=>{
+  if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
   const save=event.target.closest('[data-save]');if(save){toggleSaved(save.dataset.save);return;}
-  const open=event.target.closest('[data-open]');if(open){openProduct(open.dataset.open,open);return;}
+  const follow=event.target.closest('[data-follow]');if(follow){toggleFollow(follow.dataset.follow);return;}
+  const open=event.target.closest('[data-open]');if(open){event.preventDefault();navigate('object',open.dataset.open,open);return;}
+  const designer=event.target.closest('[data-maker]');if(designer){event.preventDefault();navigate('maker',designer.dataset.maker,designer);return;}
+  if(event.target.closest('[data-trail-back]')){if(trail.length>1)history.back();else closeExplorer();return;}
+  if(event.target.closest('[data-explorer-close]')){closeExplorer();return;}
+  const step=event.target.closest('[data-trail-index]');if(step){const index=Number(step.dataset.trailIndex);history.go(index-(trail.length-1));return;}
+  if(event.target.closest('[data-share]')){if(navigator.clipboard?.writeText)navigator.clipboard.writeText(location.href).then(()=>notify('A little curiosity, ready to share. Link copied.')).catch(()=>notify('Share this story by copying the address above.'));else notify('Share this story by copying the address above.');return;}
   const view=event.target.closest('[data-view]');if(view){setView(view.dataset.view);return;}
+  const collection=event.target.closest('[data-collection]');if(collection){state.collection=collection.dataset.collection;resetFilters();renderGallery();return;}
   const category=event.target.closest('[data-category]');if(category){state.category=category.dataset.category;state.visible=16;renderCategories();renderGallery();return;}
-  const close=event.target.closest('[data-close]');if(close){close.closest('dialog').close();return;}
-  if(event.target.closest('[data-editorial]')){state.category='Objects';state.visible=16;renderCategories();renderGallery();$('categories').scrollIntoView({block:'nearest',behavior:prefersReducedMotion()?'instant':'smooth'});}
+  const close=event.target.closest('[data-close]');if(close)close.closest('dialog').close();
 });
 document.querySelector('.search').addEventListener('submit',e=>e.preventDefault());
 $('search').addEventListener('input',e=>{state.query=e.target.value;state.visible=16;renderGallery();});
 ['palette','material','sort'].forEach(key=>$(key).addEventListener('change',e=>{state[key]=e.target.value;state.visible=16;renderGallery();}));
 $('refine-toggle').addEventListener('click',()=>{const open=$('refine-panel').hidden;$('refine-panel').hidden=!open;$('refine-toggle').setAttribute('aria-expanded',open);});
 $('reset-filters').addEventListener('click',()=>{resetFilters();renderGallery();});
-$('empty-action').addEventListener('click',()=>{if(state.view==='saved'&&saved.size===0)setView('discover');else{resetFilters();renderGallery();}});
+$('empty-action').addEventListener('click',()=>{if(state.view==='saved'&&(isMakerView()?followed.size===0:saved.size===0))setView(isMakerView()?'makers':'discover');else{resetFilters();renderGallery();}});
 $('density-toggle').addEventListener('click',()=>{const compact=$('gallery').classList.toggle('compact');$('density-toggle').setAttribute('aria-pressed',compact);$('density-toggle').setAttribute('aria-label',`Use ${compact?'comfortable':'compact'} gallery layout`);masonry();});
 $('shuffle').addEventListener('click',mixItUp);$('remix').addEventListener('click',mixItUp);$('load-more').addEventListener('click',loadMore);
 $('about-open').addEventListener('click',()=>showInfo('about'));$('credits-open').addEventListener('click',()=>showInfo('credits'));
 $('back-top').addEventListener('click',goTop);window.addEventListener('scroll',()=>{$('back-top').hidden=scrollY<700;},{passive:true});
-document.querySelectorAll('dialog').forEach(dialog=>{
-  dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const rect=dialog.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)dialog.close();});
-  dialog.addEventListener('close',()=>{if(!document.querySelector('dialog[open]'))document.body.style.overflow='';if(dialog.id==='product-dialog'){currentProduct=null;if(lastProductTrigger?.isConnected)lastProductTrigger.focus({preventScroll:true});else $('gallery').focus({preventScroll:true});}});
-});
+$('gallery').addEventListener('load',masonry,true);
+document.querySelectorAll('dialog').forEach(dialog=>{dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();});dialog.addEventListener('close',()=>{if(!document.querySelector('dialog[open]'))document.body.style.overflow='';if(dialog.id==='product-dialog'){clearExplorerRoute();if(lastProductTrigger?.isConnected)lastProductTrigger.focus({preventScroll:true});else $('gallery').focus({preventScroll:true});}});});
 document.addEventListener('keydown',e=>{if(e.key==='/'&&!document.querySelector('dialog[open]')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('search').focus();}});
-window.addEventListener('storage',event=>{if(event.key!=='form-found-saved')return;try{const data=JSON.parse(event.newValue||'[]');if(!Array.isArray(data))return;saved=new Set(data.filter(id=>ids.has(id)));updateSavedControls();if(state.view==='saved')renderGallery();}catch{}});
-document.fonts.ready.then(masonry);renderCategories();renderGallery();updateSavedControls();
+window.addEventListener('storage',e=>{if(!['form-found-saved','form-found-followed',null].includes(e.key))return;saved=readSet('form-found-saved',new Set(PRODUCTS.map(p=>p.id)));followed=readSet('form-found-followed',new Set(DESIGNERS.map(d=>d.id)));updateSavedControls();if(state.view==='saved')renderGallery();});
+$('maker-chips').innerHTML=DESIGNERS.slice(0,4).map(makerChip).join('');
+document.fonts.ready.then(masonry);renderCategories();renderGallery();syncRoute();
