@@ -7,3 +7,7 @@ README.md
 product-museum-prototype.zip
 assets/products
 assets/image-credits.json
+tests
+package.json
+package-lock.json
+ACCESSIBILITY.md

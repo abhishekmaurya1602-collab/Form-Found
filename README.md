@@ -23,6 +23,22 @@ Open `http://localhost:8000`. GitHub Pages serves this directory directly from `
 - Saved objects (`form-found-saved`) and followed makers (`form-found-followed`) persist in localStorage. My collection contains both. Storage failures preserve the experience for the current visit.
 - Native dialogs provide focus containment and Escape support. Reduced motion and keyboard navigation are supported.
 
+## Accessibility
+
+The implementation targets WCAG 2.2 Level AA. See the [accessibility information](accessibility.html) and [assessment notes](ACCESSIBILITY.md) for scope, measured contrast, and the outstanding manual checks. Automated checks alone do not establish conformance.
+
+Keyboard access includes a skip link, visible focus, Control/Command + K search, dialog headings and focus restoration, persistent status messages, and explicit loading of more stories. Gallery controls remain available on narrow screens.
+
+Development checks use Node.js 24.15 or later:
+
+```sh
+npm ci
+npm test
+npm run test:axe
+```
+
+These are development-only dependencies; the production website remains static and needs no installation or build. The axe audit runs in JSDOM, with rendered color-contrast checking disabled. A separate regression check calculates the authored palette's contrast ratios. Real-browser and assistive-technology testing remains necessary.
+
 ## Content and images
 
 `products.js` holds the object records, maker profiles, archival source links, and editorial connections. Connections suggest comparisons; they do not assert historical influence.
@@ -41,7 +57,7 @@ To deploy this same GitHub repository instead of creating a copy:
 
 1. Open <https://vercel.com/new> and import `abhishekmaurya1602-collab/Form-Found`.
 2. Select Framework Preset **Other**. Leave the root directory at the repository root, leave Build Command and Install Command empty, and set Output Directory to `.`. The checked-in configuration supplies these settings.
-3. Set the project's production branch to `codex/gallery-redesign` in Settings → Environments → Production → Branch Tracking, then deploy that branch. The redesigned site is on this branch, rather than `main`.
+3. Set the project's production branch to `main` in Settings → Environments → Production → Branch Tracking, then deploy that branch. The live project at <https://form-found.vercel.app/> tracks `main`; `codex/gallery-redesign` is kept in sync for GitHub Pages.
 4. Open the production URL Vercel returns. Test an object and maker link, such as `/#maker/eames`, and the Sources & credits links.
 
 Hash-based exploration links work on both Vercel and GitHub Pages without special routing. Future pushes to the selected production branch automatically deploy through the Vercel Git integration.

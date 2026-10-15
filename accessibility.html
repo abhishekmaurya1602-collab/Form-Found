@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Keyboard access, accessibility features, and assessment status for Form & Found.">
+  <title>Accessibility — Form &amp; Found</title>
+  <link rel="icon" href="assets/favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .accessibility-page section { max-width: 48rem; margin-block: 2rem; }
+    .accessibility-page h2 { font-size: 1.5rem; line-height: 1.5; margin-block: 1.5rem .75rem; }
+    .accessibility-page p, .accessibility-page li { font-size: 1rem; line-height: 1.8; }
+    .accessibility-page li { margin-block: .5rem; }
+    .accessibility-page a { text-decoration: underline; text-underline-offset: .2em; }
+    .accessibility-page kbd { border: 1px solid var(--control-border); border-radius: .2rem; padding: .1rem .35rem; font: inherit; }
+  </style>
+  <link rel="stylesheet" href="accessibility.css">
+</head>
+<body class="credits-page accessibility-page">
+  <a class="skip-link" href="#accessibility-main">Skip to accessibility information</a>
+  <main id="accessibility-main" tabindex="-1">
+    <header>
+      <a class="brand" href="./">form<span>&amp;</span>found<span class="brand-period">.</span><span class="sr-only"> home</span></a>
+      <a href="./">Back to the gallery</a>
+    </header>
+    <h1>Accessibility at <em>Form &amp; Found.</em></h1>
+    <p>Our target is the Web Content Accessibility Guidelines (WCAG) 2.2, Level AA. We want everyone to be able to discover the objects, meet their makers, and follow a new idea.</p>
+    <section aria-labelledby="keyboard-heading">
+      <h2 id="keyboard-heading">Using a keyboard</h2>
+      <ul>
+        <li>Press <kbd>Tab</kbd> to move between links and controls, and <kbd>Shift</kbd> + <kbd>Tab</kbd> to move back. A visible outline shows your position.</li>
+        <li>The first link skips directly to the gallery. Use <kbd>Enter</kbd> to open links and <kbd>Enter</kbd> or <kbd>Space</kbd> to activate buttons.</li>
+        <li>Press <kbd>Control</kbd> + <kbd>K</kbd>, or <kbd>Command</kbd> + <kbd>K</kbd> on a Mac, to focus search when a dialog is closed.</li>
+        <li>Object stories and maker profiles open in dialogs. Press <kbd>Escape</kbd> or use the close button to return to the gallery. The exploration Back button returns to your previous story.</li>
+      </ul>
+    </section>
+    <section aria-labelledby="features-heading">
+      <h2 id="features-heading">Reading and exploring</h2>
+      <ul>
+        <li>Text and control colors use a higher-contrast palette. Controls have visible labels or accessible names.</li>
+        <li>The layout adapts to narrow screens and enlarged text. Your device’s reduced-motion and high-contrast settings are respected.</li>
+        <li>More stories load when you choose the “More good things” button. Focus moves to the new content, and the change is announced to screen readers.</li>
+        <li>Saving, following, search results, and copy-link feedback are announced without moving you away from the action. Messages do not cover the controls.</li>
+        <li>External archive links identify when they open a new tab. Photographs have text alternatives, and decorative images are hidden from screen readers.</li>
+      </ul>
+    </section>
+    <section aria-labelledby="assessment-heading">
+      <h2 id="assessment-heading">Assessment status</h2>
+      <p>The implementation was reviewed on 15 October 2026. Automated checks cover page structure, accessible names, dialog content, application focus behavior, and the contrast of the authored color palette.</p>
+      <p>A complete manual assessment with real browsers and assistive technology is still outstanding. Native dialog behavior, screen-reader announcements, enlarged text, text-spacing changes, and reflow need that final review. We are not claiming independently verified WCAG conformance.</p>
+    </section>
+    <section aria-labelledby="feedback-heading">
+      <h2 id="feedback-heading">Report an accessibility problem</h2>
+      <p>If something prevents you from using the site, <a href="https://github.com/abhishekmaurya1602-collab/Form-Found/issues/new?title=Accessibility%20issue">report it in the project’s GitHub issue tracker</a>. Include the page, what you were trying to do, and your browser or assistive technology. A GitHub account is required to submit an issue.</p>
+    </section>
+    <footer><a href="./">Back to the gallery</a><span>FORM &amp; FOUND © 2026</span></footer>
+  </main>
+</body>
+</html>
